@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/activereports/ars-client.svg?branch=master)](https://travis-ci.org/activereports/ars-client)
+
 # ars-client
 JavaScript client to RESTful API of ActiveReports Server.
 
