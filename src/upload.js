@@ -19,7 +19,7 @@ export function postContent(client, method, path, body, options = defaultUploadO
 		'nopatchref',
 		'novalidation'
 	));
-	const url = `/api/${path}/content?${query}`;
+	const url = client.absurl(`/api/${path}/content?${query}`);
 	return fetch(url, {
 		headers: {
 			AuthToken: client.token,
@@ -31,7 +31,7 @@ export function postContent(client, method, path, body, options = defaultUploadO
 }
 
 export function getContent(client, path, options = defaultUploadOptions) {
-	const url = `/api/${path}/content`;
+	const url = client.absurl(`/api/${path}/content`);
 	return fetch(url, {
 		headers: {
 			AuthToken: client.token,

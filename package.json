@@ -28,7 +28,8 @@
   "homepage": "https://github.com/activereports/ars-client#readme",
   "dependencies": {
     "lodash": "^4.2.0",
-    "query-string": "^3.0.0"
+    "query-string": "^3.0.0",
+    "url-join": "0.0.1"
   },
   "devDependencies": {
     "babel": "^6.3.26",

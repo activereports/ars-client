@@ -109,7 +109,7 @@
             };
         }
         function postContent(client, method, path, body) {
-            var options = arguments.length <= 4 || void 0 === arguments[4] ? defaultUploadOptions : arguments[4], query = _queryString2["default"].stringify(_lodash2["default"].pick(options, "name", "description", "comment", "tagId", "connectionString", "default", "temporary", "overwrite", "nopatchref", "novalidation")), url = "/api/" + path + "/content?" + query;
+            var options = arguments.length <= 4 || void 0 === arguments[4] ? defaultUploadOptions : arguments[4], query = _queryString2["default"].stringify(_lodash2["default"].pick(options, "name", "description", "comment", "tagId", "connectionString", "default", "temporary", "overwrite", "nopatchref", "novalidation")), url = client.absurl("/api/" + path + "/content?" + query);
             return fetch(url, {
                 headers: {
                     AuthToken: client.token,
@@ -120,7 +120,7 @@
             });
         }
         function getContent(client, path) {
-            var options = arguments.length <= 2 || void 0 === arguments[2] ? defaultUploadOptions : arguments[2], url = "/api/" + path + "/content";
+            var options = arguments.length <= 2 || void 0 === arguments[2] ? defaultUploadOptions : arguments[2], url = client.absurl("/api/" + path + "/content");
             return fetch(url, {
                 headers: {
                     AuthToken: client.token,
@@ -9852,7 +9852,7 @@
                     return _;
                 }.call(exports, __webpack_require__, exports, module), !(__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
             }).call(this);
-        }).call(exports, __webpack_require__(9)(module), function() {
+        }).call(exports, __webpack_require__(10)(module), function() {
             return this;
         }());
     }, /* 4 */
@@ -9909,15 +9909,21 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         });
-        var _document = __webpack_require__(5), _document2 = _interopRequireDefault(_document), _documentCollection = __webpack_require__(6), _documentCollection2 = _interopRequireDefault(_documentCollection), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultOptions = {
+        var _document = __webpack_require__(5), _document2 = _interopRequireDefault(_document), _documentCollection = __webpack_require__(6), _documentCollection2 = _interopRequireDefault(_documentCollection), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _urlJoin = __webpack_require__(9), _urlJoin2 = _interopRequireDefault(_urlJoin), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultOptions = {
+            endpoint: "",
             token: "$local_admin"
         }, ArsClient = function() {
             function ArsClient() {
                 var options = arguments.length <= 0 || void 0 === arguments[0] ? defaultOptions : arguments[0];
                 _classCallCheck(this, ArsClient), this.options = options, this.token = options.token, 
-                this.reports = makeCollection(this, "reports");
+                this.endpoint = options.endpoint, this.reports = makeCollection(this, "reports");
             }
             return _createClass(ArsClient, [ {
+                key: "absurl",
+                value: function(url) {
+                    return this.endpoint ? (0, _urlJoin2["default"])(this.endpoint, url) : url;
+                }
+            }, {
                 key: "fetchJSON",
                 value: function(url) {
                     var options = arguments.length <= 1 || void 0 === arguments[1] ? {} : arguments[1], opts = _extends({
@@ -9926,7 +9932,7 @@
                             Accept: _mimeType2["default"].json
                         }
                     }, options);
-                    return fetch(url, opts).then(function(response) {
+                    return fetch(this.absurl(url), opts).then(function(response) {
                         return response.json();
                     });
                 }
@@ -10083,6 +10089,16 @@
             });
         };
     }, /* 9 */
+    /***/
+    function(module, exports) {
+        function normalize(str) {
+            return str.replace(/[\/]+/g, "/").replace(/\/\?/g, "?").replace(/\/\#/g, "#").replace(/\:\//g, "://");
+        }
+        module.exports = function() {
+            var joined = [].slice.call(arguments, 0).join("/");
+            return normalize(joined);
+        };
+    }, /* 10 */
     /***/
     function(module, exports) {
         module.exports = function(module) {

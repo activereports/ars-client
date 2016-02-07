@@ -1,6 +1,7 @@
 import Document from './document';
 import DocumentCollection from './documentCollection';
 import mimeType from './mimeType';
+import urljoin from 'url-join';
 import _ from 'lodash';
 
 function makeCollection(client, collectionName) {
@@ -23,6 +24,7 @@ function makeCollection(client, collectionName) {
 
 // TODO remove default options
 const defaultOptions = {
+	endpoint: '',
 	token: '$local_admin',
 };
 
@@ -30,7 +32,12 @@ export default class ArsClient {
 	constructor(options = defaultOptions) {
 		this.options = options;
 		this.token = options.token;
+		this.endpoint = options.endpoint;
 		this.reports = makeCollection(this, 'reports');
+	}
+
+	absurl(url) {
+		return this.endpoint ? urljoin(this.endpoint, url) : url;
 	}
 
 	fetchJSON(url, options = {}) {
@@ -41,7 +48,7 @@ export default class ArsClient {
 			},
 			...options,
 		};
-		return fetch(url, opts).then(response => response.json());
+		return fetch(this.absurl(url), opts).then(response => response.json());
 	}
 
 	delete(url) {
