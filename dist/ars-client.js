@@ -1,4 +1,4 @@
-// ars-client v0.1.0
+// ars-client v0.1.1
 // Copyright (c) 2016 GrapeCity, Inc.
 // Distributed under MIT license
 // http://github.com/activereports/ars-client
@@ -84,9 +84,9 @@
         }
         Object.defineProperty(exports, "__esModule", {
             value: !0
-        }), exports.ArsClient = void 0;
-        var _client = __webpack_require__(4), _client2 = _interopRequireDefault(_client);
-        exports.ArsClient = _client2["default"], exports["default"] = _client2["default"];
+        }), exports.login = exports.ArsClient = void 0;
+        var _client = __webpack_require__(5), _client2 = _interopRequireDefault(_client), _login = __webpack_require__(8);
+        exports.ArsClient = _client2["default"], exports.login = _login.login, exports["default"] = _client2["default"];
     }, /* 1 */
     /***/
     function(module, exports) {
@@ -133,7 +133,7 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         }), exports.defaultUploadOptions = void 0, exports.postContent = postContent, exports.getContent = getContent;
-        var _queryString = __webpack_require__(7), _queryString2 = _interopRequireDefault(_queryString), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultUploadOptions = exports.defaultUploadOptions = {
+        var _queryString = __webpack_require__(9), _queryString2 = _interopRequireDefault(_queryString), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultUploadOptions = exports.defaultUploadOptions = {
             contentType: _mimeType2["default"].json
         };
     }, /* 3 */
@@ -9852,10 +9852,20 @@
                     return _;
                 }.call(exports, __webpack_require__, exports, module), !(__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
             }).call(this);
-        }).call(exports, __webpack_require__(10)(module), function() {
+        }).call(exports, __webpack_require__(11)(module), function() {
             return this;
         }());
     }, /* 4 */
+    /***/
+    function(module, exports) {
+        function normalize(str) {
+            return str.replace(/[\/]+/g, "/").replace(/\/\?/g, "?").replace(/\/\#/g, "#").replace(/\:\//g, "://");
+        }
+        module.exports = function() {
+            var joined = [].slice.call(arguments, 0).join("/");
+            return normalize(joined);
+        };
+    }, /* 5 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
@@ -9909,7 +9919,7 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         });
-        var _document = __webpack_require__(5), _document2 = _interopRequireDefault(_document), _documentCollection = __webpack_require__(6), _documentCollection2 = _interopRequireDefault(_documentCollection), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _urlJoin = __webpack_require__(9), _urlJoin2 = _interopRequireDefault(_urlJoin), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultOptions = {
+        var _document = __webpack_require__(6), _document2 = _interopRequireDefault(_document), _documentCollection = __webpack_require__(7), _documentCollection2 = _interopRequireDefault(_documentCollection), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _urlJoin = __webpack_require__(4), _urlJoin2 = _interopRequireDefault(_urlJoin), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultOptions = {
             endpoint: "",
             token: "$local_admin"
         }, ArsClient = function() {
@@ -9946,7 +9956,7 @@
             } ]), ArsClient;
         }();
         exports["default"] = ArsClient;
-    }, /* 5 */
+    }, /* 6 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
@@ -10008,7 +10018,7 @@
             } ]), Document;
         }();
         exports["default"] = Document;
-    }, /* 6 */
+    }, /* 7 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
@@ -10054,11 +10064,39 @@
             } ]), DocumentCollection;
         }();
         exports["default"] = DocumentCollection;
-    }, /* 7 */
+    }, /* 8 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
-        var strictUriEncode = __webpack_require__(8);
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            };
+        }
+        function login(user, password) {
+            var endpoint = arguments.length <= 2 || void 0 === arguments[2] ? "" : arguments[2], path = "/api/accounts/login", url = endpoint ? (0, 
+            _urlJoin2["default"])(endpoint, path) : path;
+            return fetch(url, {
+                method: "post",
+                body: JSON.stringify({
+                    user: user,
+                    password: password
+                })
+            }).then(function(r) {
+                return r.json();
+            }).then(function(p) {
+                return p.Token || "";
+            });
+        }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        }), exports.login = login;
+        var _urlJoin = __webpack_require__(4), _urlJoin2 = _interopRequireDefault(_urlJoin);
+    }, /* 9 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        "use strict";
+        var strictUriEncode = __webpack_require__(10);
         exports.extract = function(str) {
             return str.split("?")[1] || "";
         }, exports.parse = function(str) {
@@ -10079,7 +10117,7 @@
                 return x.length > 0;
             }).join("&") : "";
         };
-    }, /* 8 */
+    }, /* 10 */
     /***/
     function(module, exports) {
         "use strict";
@@ -10088,17 +10126,7 @@
                 return "%" + c.charCodeAt(0).toString(16).toUpperCase();
             });
         };
-    }, /* 9 */
-    /***/
-    function(module, exports) {
-        function normalize(str) {
-            return str.replace(/[\/]+/g, "/").replace(/\/\?/g, "?").replace(/\/\#/g, "#").replace(/\:\//g, "://");
-        }
-        module.exports = function() {
-            var joined = [].slice.call(arguments, 0).join("/");
-            return normalize(joined);
-        };
-    }, /* 10 */
+    }, /* 11 */
     /***/
     function(module, exports) {
         module.exports = function(module) {

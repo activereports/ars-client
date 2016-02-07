@@ -1,3 +1,9 @@
 import ArsClient from './client';
-export { ArsClient };
+import { login } from './login';
+
+export {
+	ArsClient,
+	login,
+};
+
 export default ArsClient;
