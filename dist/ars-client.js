@@ -1,4 +1,4 @@
-// ars-client v0.1.1
+// ars-client v0.1.2
 // Copyright (c) 2016 GrapeCity, Inc.
 // Distributed under MIT license
 // http://github.com/activereports/ars-client
@@ -85,9 +85,70 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         }), exports.login = exports.ArsClient = void 0;
-        var _client = __webpack_require__(5), _client2 = _interopRequireDefault(_client), _login = __webpack_require__(8);
+        var _client = __webpack_require__(6), _client2 = _interopRequireDefault(_client), _login = __webpack_require__(10);
         exports.ArsClient = _client2["default"], exports.login = _login.login, exports["default"] = _client2["default"];
     }, /* 1 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        "use strict";
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+        }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        });
+        var _createClass = function() {
+            function defineProperties(target, props) {
+                for (var i = 0; i < props.length; i++) {
+                    var descriptor = props[i];
+                    descriptor.enumerable = descriptor.enumerable || !1, descriptor.configurable = !0, 
+                    "value" in descriptor && (descriptor.writable = !0), Object.defineProperty(target, descriptor.key, descriptor);
+                }
+            }
+            return function(Constructor, protoProps, staticProps) {
+                return protoProps && defineProperties(Constructor.prototype, protoProps), staticProps && defineProperties(Constructor, staticProps), 
+                Constructor;
+            };
+        }(), _upload = __webpack_require__(3), Document = function() {
+            function Document(client, collectionName, id) {
+                _classCallCheck(this, Document), this.client = client, this.collectionName = collectionName, 
+                this.id = id, this.path = collectionName + "/" + this.id;
+            }
+            return _createClass(Document, [ {
+                key: "load",
+                value: function() {
+                    return this.client.fetchJSON("/api/" + this.path);
+                }
+            }, {
+                key: "delete",
+                value: function() {
+                    return this.client["delete"]("/api/" + this.path);
+                }
+            }, {
+                key: "remove",
+                value: function() {
+                    return this["delete"]();
+                }
+            }, {
+                key: "getContent",
+                value: function() {
+                    return (0, _upload.getContent)(this.client, this.path);
+                }
+            }, {
+                key: "content",
+                value: function() {
+                    return this.getContent();
+                }
+            }, {
+                key: "updateContent",
+                value: function(body) {
+                    var options = arguments.length <= 1 || void 0 === arguments[1] ? _upload.defaultUploadOptions : arguments[1];
+                    return (0, _upload.postContent)(this.client, "put", this.path, body, options);
+                }
+            } ]), Document;
+        }();
+        exports["default"] = Document;
+    }, /* 2 */
     /***/
     function(module, exports) {
         "use strict";
@@ -99,7 +160,7 @@
             json: "application/json"
         };
         exports["default"] = mimeType;
-    }, /* 2 */
+    }, /* 3 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
@@ -133,10 +194,10 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         }), exports.defaultUploadOptions = void 0, exports.postContent = postContent, exports.getContent = getContent;
-        var _queryString = __webpack_require__(9), _queryString2 = _interopRequireDefault(_queryString), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultUploadOptions = exports.defaultUploadOptions = {
+        var _queryString = __webpack_require__(12), _queryString2 = _interopRequireDefault(_queryString), _mimeType = __webpack_require__(2), _mimeType2 = _interopRequireDefault(_mimeType), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), defaultUploadOptions = exports.defaultUploadOptions = {
             contentType: _mimeType2["default"].json
         };
-    }, /* 3 */
+    }, /* 4 */
     /***/
     function(module, exports, __webpack_require__) {
         var __WEBPACK_AMD_DEFINE_RESULT__;
@@ -1459,6 +1520,7 @@
                             if (result = initCloneArray(value), !isDeep) return copyArray(value, result);
                         } else {
                             var tag = getTag(value), isFunc = tag == funcTag || tag == genTag;
+                            if (isBuffer(value)) return cloneBuffer(value, isDeep);
                             if (tag != objectTag && tag != argsTag && (!isFunc || object)) return cloneableTags[tag] ? initCloneByTag(value, tag, isDeep) : object ? value : {};
                             if (isHostObject(value)) return object ? value : {};
                             if (result = initCloneObject(isFunc ? {} : value), !isDeep) return copySymbols(value, baseAssign(result, value));
@@ -1496,7 +1558,7 @@
 	     * @private
 	     * @param {Function} func The function to delay.
 	     * @param {number} wait The number of milliseconds to delay invocation.
-	     * @param {Object} args The arguments provide to `func`.
+	     * @param {Object} args The arguments to provide to `func`.
 	     * @returns {number} Returns the timer id.
 	     */
                     function baseDelay(func, wait, args) {
@@ -1630,7 +1692,7 @@
                     }
                     /**
 	     * The base implementation of `_.functions` which creates an array of
-	     * `object` function property names filtered from those provided.
+	     * `object` function property names filtered from `props`.
 	     *
 	     * @private
 	     * @param {Object} object The object to inspect.
@@ -2350,15 +2412,28 @@
                         return result;
                     }
                     /**
-	     * Creates a clone of `buffer`.
+	     * Creates a clone of  `buffer`.
 	     *
 	     * @private
-	     * @param {ArrayBuffer} buffer The array buffer to clone.
+	     * @param {Buffer} buffer The buffer to clone.
+	     * @param {boolean} [isDeep] Specify a deep clone.
+	     * @returns {Buffer} Returns the cloned buffer.
+	     */
+                    function cloneBuffer(buffer, isDeep) {
+                        if (isDeep) return buffer.slice();
+                        var Ctor = buffer.constructor, result = new Ctor(buffer.length);
+                        return buffer.copy(result), result;
+                    }
+                    /**
+	     * Creates a clone of `arrayBuffer`.
+	     *
+	     * @private
+	     * @param {ArrayBuffer} arrayBuffer The array buffer to clone.
 	     * @returns {ArrayBuffer} Returns the cloned array buffer.
 	     */
-                    function cloneBuffer(buffer) {
-                        var Ctor = buffer.constructor, result = new Ctor(buffer.byteLength), view = new Uint8Array(result);
-                        return view.set(new Uint8Array(buffer)), result;
+                    function cloneArrayBuffer(arrayBuffer) {
+                        var Ctor = arrayBuffer.constructor, result = new Ctor(arrayBuffer.byteLength), view = new Uint8Array(result);
+                        return view.set(new Uint8Array(arrayBuffer)), result;
                     }
                     /**
 	     * Creates a clone of `map`.
@@ -2413,7 +2488,7 @@
 	     */
                     function cloneTypedArray(typedArray, isDeep) {
                         var buffer = typedArray.buffer, Ctor = typedArray.constructor;
-                        return new Ctor(isDeep ? cloneBuffer(buffer) : buffer, typedArray.byteOffset, typedArray.length);
+                        return new Ctor(isDeep ? cloneArrayBuffer(buffer) : buffer, typedArray.byteOffset, typedArray.length);
                     }
                     /**
 	     * Creates an array that is the composition of partially applied arguments,
@@ -2667,7 +2742,7 @@
 	     */
                     function createCurryWrapper(func, bitmask, arity) {
                         function wrapper() {
-                            for (var length = arguments.length, index = length, args = Array(length), fn = this && this !== root && this instanceof wrapper ? Ctor : func, placeholder = wrapper.placeholder; index--; ) args[index] = arguments[index];
+                            for (var length = arguments.length, index = length, args = Array(length), fn = this && this !== root && this instanceof wrapper ? Ctor : func, placeholder = lodash.placeholder || wrapper.placeholder; index--; ) args[index] = arguments[index];
                             var holders = 3 > length && args[0] !== placeholder && args[length - 1] !== placeholder ? [] : replaceHolders(args, placeholder);
                             return length -= holders.length, arity > length ? createRecurryWrapper(func, bitmask, createHybridWrapper, placeholder, undefined, args, holders, undefined, undefined, arity - length) : apply(fn, this, args);
                         }
@@ -2725,7 +2800,7 @@
                             for (var length = arguments.length, index = length, args = Array(length); index--; ) args[index] = arguments[index];
                             if (partials && (args = composeArgs(args, partials, holders)), partialsRight && (args = composeArgsRight(args, partialsRight, holdersRight)), 
                             isCurry || isCurryRight) {
-                                var placeholder = wrapper.placeholder, argsHolders = replaceHolders(args, placeholder);
+                                var placeholder = lodash.placeholder || wrapper.placeholder, argsHolders = replaceHolders(args, placeholder);
                                 if (length -= argsHolders.length, arity > length) return createRecurryWrapper(func, bitmask, createHybridWrapper, placeholder, thisArg, args, argsHolders, argPos, ary, arity - length);
                             }
                             var thisBinding = isBind ? thisArg : this, fn = isBindKey ? thisBinding[func] : func;
@@ -3202,7 +3277,7 @@
                         var Ctor = object.constructor;
                         switch (tag) {
                           case arrayBufferTag:
-                            return cloneBuffer(object);
+                            return cloneArrayBuffer(object);
 
                           case boolTag:
                           case dateTag:
@@ -3249,7 +3324,7 @@
                         return isLength(length) && (isArray(object) || isString(object) || isArguments(object)) ? baseTimes(length, String) : null;
                     }
                     /**
-	     * Checks if the provided arguments are from an iteratee call.
+	     * Checks if the given arguments are from an iteratee call.
 	     *
 	     * @private
 	     * @param {*} value The potential iteratee value argument.
@@ -3939,7 +4014,7 @@
                     }
                     /**
 	     * This method is like `_.pullAll` except that it accepts `iteratee` which is
-	     * invoked for each element of `array` and `values` to to generate the criterion
+	     * invoked for each element of `array` and `values` to generate the criterion
 	     * by which uniqueness is computed. The iteratee is invoked with one argument: (value).
 	     *
 	     * **Note:** Unlike `_.differenceBy`, this method mutates `array`.
@@ -5126,7 +5201,7 @@
 	     * Reduces `collection` to a value which is the accumulated result of running
 	     * each element in `collection` through `iteratee`, where each successive
 	     * invocation is supplied the return value of the previous. If `accumulator`
-	     * is not provided the first element of `collection` is used as the initial
+	     * is not given the first element of `collection` is used as the initial
 	     * value. The iteratee is invoked with four arguments:
 	     * (accumulator, value, index|key, collection).
 	     *
@@ -5466,7 +5541,7 @@
                     function curry(func, arity, guard) {
                         arity = guard ? undefined : arity;
                         var result = createWrapper(func, CURRY_FLAG, undefined, undefined, undefined, undefined, undefined, arity);
-                        return result.placeholder = curry.placeholder, result;
+                        return result.placeholder = lodash.placeholder || curry.placeholder, result;
                     }
                     /**
 	     * This method is like `_.curry` except that arguments are applied to `func`
@@ -5508,7 +5583,7 @@
                     function curryRight(func, arity, guard) {
                         arity = guard ? undefined : arity;
                         var result = createWrapper(func, CURRY_RIGHT_FLAG, undefined, undefined, undefined, undefined, undefined, arity);
-                        return result.placeholder = curryRight.placeholder, result;
+                        return result.placeholder = lodash.placeholder || curryRight.placeholder, result;
                     }
                     /**
 	     * Creates a debounced function that delays invoking `func` until after `wait`
@@ -5521,7 +5596,7 @@
 	     * to the debounced function return the result of the last `func` invocation.
 	     *
 	     * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
-	     * on the trailing edge of the timeout only if the the debounced function is
+	     * on the trailing edge of the timeout only if the debounced function is
 	     * invoked more than once during the `wait` timeout.
 	     *
 	     * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
@@ -5582,7 +5657,7 @@
                         function debounced() {
                             if (args = arguments, stamp = now(), thisArg = this, trailingCall = trailing && (timeoutId || !leading), 
                             maxWait === !1) var leadingCall = leading && !timeoutId; else {
-                                maxTimeoutId || leading || (lastCalled = stamp);
+                                lastCalled || maxTimeoutId || leading || (lastCalled = stamp);
                                 var remaining = maxWait - (stamp - lastCalled), isCalled = 0 >= remaining || remaining > maxWait;
                                 isCalled ? (maxTimeoutId && (maxTimeoutId = clearTimeout(maxTimeoutId)), lastCalled = stamp, 
                                 result = func.apply(thisArg, args)) : maxTimeoutId || (maxTimeoutId = setTimeout(maxDelayed, remaining));
@@ -5806,7 +5881,7 @@
 	     * result of the last `func` invocation.
 	     *
 	     * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
-	     * on the trailing edge of the timeout only if the the throttled function is
+	     * on the trailing edge of the timeout only if the throttled function is
 	     * invoked more than once during the `wait` timeout.
 	     *
 	     * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
@@ -6092,6 +6167,26 @@
                     function isArguments(value) {
                         // Safari 8.1 incorrectly makes `arguments.callee` enumerable in strict mode.
                         return isArrayLikeObject(value) && hasOwnProperty.call(value, "callee") && (!propertyIsEnumerable.call(value, "callee") || objectToString.call(value) == argsTag);
+                    }
+                    /**
+	     * Checks if `value` is classified as an `ArrayBuffer` object.
+	     *
+	     * @static
+	     * @memberOf _
+	     * @type Function
+	     * @category Lang
+	     * @param {*} value The value to check.
+	     * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+	     * @example
+	     *
+	     * _.isArrayBuffer(new ArrayBuffer(2));
+	     * // => true
+	     *
+	     * _.isArrayBuffer(new Array(2));
+	     * // => false
+	     */
+                    function isArrayBuffer(value) {
+                        return isObjectLike(value) && objectToString.call(value) == arrayBufferTag;
                     }
                     /**
 	     * Checks if `value` is array-like. A value is considered array-like if it's
@@ -6481,6 +6576,25 @@
                         return !!value && "object" == typeof value;
                     }
                     /**
+	     * Checks if `value` is classified as a `Map` object.
+	     *
+	     * @static
+	     * @memberOf _
+	     * @category Lang
+	     * @param {*} value The value to check.
+	     * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+	     * @example
+	     *
+	     * _.isMap(new Map);
+	     * // => true
+	     *
+	     * _.isMap(new WeakMap);
+	     * // => false
+	     */
+                    function isMap(value) {
+                        return isObjectLike(value) && getTag(value) == mapTag;
+                    }
+                    /**
 	     * Performs a deep comparison between `object` and `source` to determine if
 	     * `object` contains equivalent property values.
 	     *
@@ -6739,6 +6853,25 @@
                         return isInteger(value) && value >= -MAX_SAFE_INTEGER && MAX_SAFE_INTEGER >= value;
                     }
                     /**
+	     * Checks if `value` is classified as a `Set` object.
+	     *
+	     * @static
+	     * @memberOf _
+	     * @category Lang
+	     * @param {*} value The value to check.
+	     * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+	     * @example
+	     *
+	     * _.isSet(new Set);
+	     * // => true
+	     *
+	     * _.isSet(new WeakSet);
+	     * // => false
+	     */
+                    function isSet(value) {
+                        return isObjectLike(value) && getTag(value) == setTag;
+                    }
+                    /**
 	     * Checks if `value` is classified as a `String` primitive or object.
 	     *
 	     * @static
@@ -6813,6 +6946,44 @@
 	     */
                     function isUndefined(value) {
                         return value === undefined;
+                    }
+                    /**
+	     * Checks if `value` is classified as a `WeakMap` object.
+	     *
+	     * @static
+	     * @memberOf _
+	     * @category Lang
+	     * @param {*} value The value to check.
+	     * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+	     * @example
+	     *
+	     * _.isWeakMap(new WeakMap);
+	     * // => true
+	     *
+	     * _.isWeakMap(new Map);
+	     * // => false
+	     */
+                    function isWeakMap(value) {
+                        return isObjectLike(value) && getTag(value) == weakMapTag;
+                    }
+                    /**
+	     * Checks if `value` is classified as a `WeakSet` object.
+	     *
+	     * @static
+	     * @memberOf _
+	     * @category Lang
+	     * @param {*} value The value to check.
+	     * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+	     * @example
+	     *
+	     * _.isWeakSet(new WeakSet);
+	     * // => true
+	     *
+	     * _.isWeakSet(new Set);
+	     * // => false
+	     */
+                    function isWeakSet(value) {
+                        return isObjectLike(value) && objectToString.call(value) == weakSetTag;
                     }
                     /**
 	     * Checks if `value` is less than `other`.
@@ -7064,7 +7235,7 @@
                     }
                     /**
 	     * Creates an object that inherits from the `prototype` object. If a `properties`
-	     * object is provided its own enumerable properties are assigned to the created object.
+	     * object is given its own enumerable properties are assigned to the created object.
 	     *
 	     * @static
 	     * @memberOf _
@@ -8262,7 +8433,7 @@
 	     * in "interpolate" delimiters, HTML-escape interpolated data properties in
 	     * "escape" delimiters, and execute JavaScript in "evaluate" delimiters. Data
 	     * properties may be accessed as free variables in the template. If a setting
-	     * object is provided it takes precedence over `_.templateSettings` values.
+	     * object is given it takes precedence over `_.templateSettings` values.
 	     *
 	     * **Note:** In the development build `_.template` utilizes
 	     * [sourceURLs](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/#toc-sourceurl)
@@ -8700,7 +8871,7 @@
                         };
                     }
                     /**
-	     * This method returns the first argument provided to it.
+	     * This method returns the first argument given to it.
 	     *
 	     * @static
 	     * @memberOf _
@@ -9010,7 +9181,7 @@
                         return isArray(value) ? arrayMap(value, String) : stringToPath(value);
                     }
                     /**
-	     * Generates a unique ID. If `prefix` is provided the ID is appended to it.
+	     * Generates a unique ID. If `prefix` is given the ID is appended to it.
 	     *
 	     * @static
 	     * @memberOf _
@@ -9046,8 +9217,9 @@
 	     */
                     function add(augend, addend) {
                         var result;
-                        return augend !== undefined && (result = augend), addend !== undefined && (result = result === undefined ? addend : result + addend), 
-                        result;
+                        return augend === undefined && addend === undefined ? 0 : (augend !== undefined && (result = augend), 
+                        addend !== undefined && (result = result === undefined ? addend : result + addend), 
+                        result);
                     }
                     /**
 	     * Computes the maximum value of `array`. If `array` is empty or falsey
@@ -9171,8 +9343,9 @@
 	     */
                     function subtract(minuend, subtrahend) {
                         var result;
-                        return minuend !== undefined && (result = minuend), subtrahend !== undefined && (result = result === undefined ? subtrahend : result - subtrahend), 
-                        result;
+                        return minuend === undefined && subtrahend === undefined ? 0 : (minuend !== undefined && (result = minuend), 
+                        subtrahend !== undefined && (result = result === undefined ? subtrahend : result - subtrahend), 
+                        result);
                     }
                     /**
 	     * Computes the sum of the values in `array`.
@@ -9217,7 +9390,7 @@
                     }
                     context = context ? _.defaults({}, context, _.pick(root, contextProps)) : root;
                     /** Built-in constructor references. */
-                    var Date = context.Date, Error = context.Error, Math = context.Math, RegExp = context.RegExp, TypeError = context.TypeError, arrayProto = context.Array.prototype, objectProto = context.Object.prototype, funcToString = context.Function.prototype.toString, hasOwnProperty = objectProto.hasOwnProperty, idCounter = 0, objectCtorString = funcToString.call(Object), objectToString = objectProto.toString, oldDash = root._, reIsNative = RegExp("^" + funcToString.call(hasOwnProperty).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"), Reflect = context.Reflect, Symbol = context.Symbol, Uint8Array = context.Uint8Array, clearTimeout = context.clearTimeout, enumerate = Reflect ? Reflect.enumerate : undefined, getPrototypeOf = Object.getPrototypeOf, getOwnPropertySymbols = Object.getOwnPropertySymbols, iteratorSymbol = "symbol" == typeof (iteratorSymbol = Symbol && Symbol.iterator) ? iteratorSymbol : undefined, propertyIsEnumerable = objectProto.propertyIsEnumerable, setTimeout = context.setTimeout, splice = arrayProto.splice, nativeCeil = Math.ceil, nativeFloor = Math.floor, nativeIsFinite = context.isFinite, nativeJoin = arrayProto.join, nativeKeys = Object.keys, nativeMax = Math.max, nativeMin = Math.min, nativeParseInt = context.parseInt, nativeRandom = Math.random, nativeReverse = arrayProto.reverse, Map = getNative(context, "Map"), Set = getNative(context, "Set"), WeakMap = getNative(context, "WeakMap"), nativeCreate = getNative(Object, "create"), metaMap = WeakMap && new WeakMap(), mapCtorString = Map ? funcToString.call(Map) : "", setCtorString = Set ? funcToString.call(Set) : "", symbolProto = Symbol ? Symbol.prototype : undefined, symbolValueOf = Symbol ? symbolProto.valueOf : undefined, symbolToString = Symbol ? symbolProto.toString : undefined, realNames = {};
+                    var Date = context.Date, Error = context.Error, Math = context.Math, RegExp = context.RegExp, TypeError = context.TypeError, arrayProto = context.Array.prototype, objectProto = context.Object.prototype, funcToString = context.Function.prototype.toString, hasOwnProperty = objectProto.hasOwnProperty, idCounter = 0, objectCtorString = funcToString.call(Object), objectToString = objectProto.toString, oldDash = root._, reIsNative = RegExp("^" + funcToString.call(hasOwnProperty).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"), Buffer = moduleExports ? context.Buffer : undefined, Reflect = context.Reflect, Symbol = context.Symbol, Uint8Array = context.Uint8Array, clearTimeout = context.clearTimeout, enumerate = Reflect ? Reflect.enumerate : undefined, getPrototypeOf = Object.getPrototypeOf, getOwnPropertySymbols = Object.getOwnPropertySymbols, iteratorSymbol = "symbol" == typeof (iteratorSymbol = Symbol && Symbol.iterator) ? iteratorSymbol : undefined, propertyIsEnumerable = objectProto.propertyIsEnumerable, setTimeout = context.setTimeout, splice = arrayProto.splice, nativeCeil = Math.ceil, nativeFloor = Math.floor, nativeIsFinite = context.isFinite, nativeJoin = arrayProto.join, nativeKeys = Object.keys, nativeMax = Math.max, nativeMin = Math.min, nativeParseInt = context.parseInt, nativeRandom = Math.random, nativeReverse = arrayProto.reverse, Map = getNative(context, "Map"), Set = getNative(context, "Set"), WeakMap = getNative(context, "WeakMap"), nativeCreate = getNative(Object, "create"), metaMap = WeakMap && new WeakMap(), mapCtorString = Map ? funcToString.call(Map) : "", setCtorString = Set ? funcToString.call(Set) : "", weakMapCtorString = WeakMap ? funcToString.call(WeakMap) : "", symbolProto = Symbol ? Symbol.prototype : undefined, symbolValueOf = Symbol ? symbolProto.valueOf : undefined, symbolToString = Symbol ? symbolProto.toString : undefined, realNames = {};
                     /**
 	     * By default, the template delimiters used by lodash are like those in
 	     * embedded Ruby (ERB). Change the following template settings to use
@@ -9314,12 +9487,18 @@
                     } : noop, getLength = baseProperty("length"), getSymbols = getOwnPropertySymbols || function() {
                         return [];
                     };
-                    // Fallback for IE 11 providing `toStringTag` values for maps and sets.
-                    (Map && getTag(new Map()) != mapTag || Set && getTag(new Set()) != setTag) && (getTag = function(value) {
+                    // Fallback for IE 11 providing `toStringTag` values for maps, sets, and weakmaps.
+                    (Map && getTag(new Map()) != mapTag || Set && getTag(new Set()) != setTag || WeakMap && getTag(new WeakMap()) != weakMapTag) && (getTag = function(value) {
                         var result = objectToString.call(value), Ctor = result == objectTag ? value.constructor : null, ctorString = "function" == typeof Ctor ? funcToString.call(Ctor) : "";
-                        if (ctorString) {
-                            if (ctorString == mapCtorString) return mapTag;
-                            if (ctorString == setCtorString) return setTag;
+                        if (ctorString) switch (ctorString) {
+                          case mapCtorString:
+                            return mapTag;
+
+                          case setCtorString:
+                            return setTag;
+
+                          case weakMapCtorString:
+                            return weakMapTag;
                         }
                         return result;
                     });
@@ -9428,14 +9607,14 @@
                     }), now = Date.now, bind = rest(function(func, thisArg, partials) {
                         var bitmask = BIND_FLAG;
                         if (partials.length) {
-                            var holders = replaceHolders(partials, bind.placeholder);
+                            var placeholder = lodash.placeholder || bind.placeholder, holders = replaceHolders(partials, placeholder);
                             bitmask |= PARTIAL_FLAG;
                         }
                         return createWrapper(func, bitmask, thisArg, partials, holders);
                     }), bindKey = rest(function(object, key, partials) {
                         var bitmask = BIND_FLAG | BIND_KEY_FLAG;
                         if (partials.length) {
-                            var holders = replaceHolders(partials, bindKey.placeholder);
+                            var placeholder = lodash.placeholder || bindKey.placeholder, holders = replaceHolders(partials, placeholder);
                             bitmask |= PARTIAL_FLAG;
                         }
                         return createWrapper(key, bitmask, object, partials, holders);
@@ -9451,14 +9630,16 @@
                             return apply(func, this, args);
                         });
                     }), partial = rest(function(func, partials) {
-                        var holders = replaceHolders(partials, partial.placeholder);
+                        var placeholder = lodash.placeholder || partial.placeholder, holders = replaceHolders(partials, placeholder);
                         return createWrapper(func, PARTIAL_FLAG, undefined, partials, holders);
                     }), partialRight = rest(function(func, partials) {
-                        var holders = replaceHolders(partials, partialRight.placeholder);
+                        var placeholder = lodash.placeholder || partialRight.placeholder, holders = replaceHolders(partials, placeholder);
                         return createWrapper(func, PARTIAL_RIGHT_FLAG, undefined, partials, holders);
                     }), rearg = rest(function(func, indexes) {
                         return createWrapper(func, REARG_FLAG, undefined, undefined, undefined, baseFlatten(indexes));
-                    }), isArray = Array.isArray, assign = createAssigner(function(object, source) {
+                    }), isArray = Array.isArray, isBuffer = Buffer ? function(value) {
+                        return value instanceof Buffer;
+                    } : constant(!1), assign = createAssigner(function(object, source) {
                         copyObject(source, keys(source), object);
                     }), assignIn = createAssigner(function(object, source) {
                         copyObject(source, keysIn(source), object);
@@ -9605,17 +9786,18 @@
                     lodash.get = get, lodash.gt = gt, lodash.gte = gte, lodash.has = has, lodash.hasIn = hasIn, 
                     lodash.head = head, lodash.identity = identity, lodash.includes = includes, lodash.indexOf = indexOf, 
                     lodash.inRange = inRange, lodash.invoke = invoke, lodash.isArguments = isArguments, 
-                    lodash.isArray = isArray, lodash.isArrayLike = isArrayLike, lodash.isArrayLikeObject = isArrayLikeObject, 
-                    lodash.isBoolean = isBoolean, lodash.isDate = isDate, lodash.isElement = isElement, 
-                    lodash.isEmpty = isEmpty, lodash.isEqual = isEqual, lodash.isEqualWith = isEqualWith, 
-                    lodash.isError = isError, lodash.isFinite = isFinite, lodash.isFunction = isFunction, 
-                    lodash.isInteger = isInteger, lodash.isLength = isLength, lodash.isMatch = isMatch, 
-                    lodash.isMatchWith = isMatchWith, lodash.isNaN = isNaN, lodash.isNative = isNative, 
-                    lodash.isNil = isNil, lodash.isNull = isNull, lodash.isNumber = isNumber, lodash.isObject = isObject, 
-                    lodash.isObjectLike = isObjectLike, lodash.isPlainObject = isPlainObject, lodash.isRegExp = isRegExp, 
-                    lodash.isSafeInteger = isSafeInteger, lodash.isString = isString, lodash.isSymbol = isSymbol, 
-                    lodash.isTypedArray = isTypedArray, lodash.isUndefined = isUndefined, lodash.join = join, 
-                    lodash.kebabCase = kebabCase, lodash.last = last, lodash.lastIndexOf = lastIndexOf, 
+                    lodash.isArray = isArray, lodash.isArrayBuffer = isArrayBuffer, lodash.isArrayLike = isArrayLike, 
+                    lodash.isArrayLikeObject = isArrayLikeObject, lodash.isBoolean = isBoolean, lodash.isBuffer = isBuffer, 
+                    lodash.isDate = isDate, lodash.isElement = isElement, lodash.isEmpty = isEmpty, 
+                    lodash.isEqual = isEqual, lodash.isEqualWith = isEqualWith, lodash.isError = isError, 
+                    lodash.isFinite = isFinite, lodash.isFunction = isFunction, lodash.isInteger = isInteger, 
+                    lodash.isLength = isLength, lodash.isMap = isMap, lodash.isMatch = isMatch, lodash.isMatchWith = isMatchWith, 
+                    lodash.isNaN = isNaN, lodash.isNative = isNative, lodash.isNil = isNil, lodash.isNull = isNull, 
+                    lodash.isNumber = isNumber, lodash.isObject = isObject, lodash.isObjectLike = isObjectLike, 
+                    lodash.isPlainObject = isPlainObject, lodash.isRegExp = isRegExp, lodash.isSafeInteger = isSafeInteger, 
+                    lodash.isSet = isSet, lodash.isString = isString, lodash.isSymbol = isSymbol, lodash.isTypedArray = isTypedArray, 
+                    lodash.isUndefined = isUndefined, lodash.isWeakMap = isWeakMap, lodash.isWeakSet = isWeakSet, 
+                    lodash.join = join, lodash.kebabCase = kebabCase, lodash.last = last, lodash.lastIndexOf = lastIndexOf, 
                     lodash.lowerCase = lowerCase, lodash.lowerFirst = lowerFirst, lodash.lt = lt, lodash.lte = lte, 
                     lodash.max = max, lodash.maxBy = maxBy, lodash.mean = mean, lodash.min = min, lodash.minBy = minBy, 
                     lodash.noConflict = noConflict, lodash.noop = noop, lodash.now = now, lodash.pad = pad, 
@@ -9748,7 +9930,7 @@
                     iteratorSymbol && (lodash.prototype[iteratorSymbol] = wrapperToIterator), lodash;
                 }
                 /** Used as a safe reference for `undefined` in pre-ES5 environments. */
-                var undefined, VERSION = "4.2.0", BIND_FLAG = 1, BIND_KEY_FLAG = 2, CURRY_BOUND_FLAG = 4, CURRY_FLAG = 8, CURRY_RIGHT_FLAG = 16, PARTIAL_FLAG = 32, PARTIAL_RIGHT_FLAG = 64, ARY_FLAG = 128, REARG_FLAG = 256, FLIP_FLAG = 512, UNORDERED_COMPARE_FLAG = 1, PARTIAL_COMPARE_FLAG = 2, DEFAULT_TRUNC_LENGTH = 30, DEFAULT_TRUNC_OMISSION = "...", HOT_COUNT = 150, HOT_SPAN = 16, LARGE_ARRAY_SIZE = 200, LAZY_FILTER_FLAG = 1, LAZY_MAP_FLAG = 2, LAZY_WHILE_FLAG = 3, FUNC_ERROR_TEXT = "Expected a function", HASH_UNDEFINED = "__lodash_hash_undefined__", INFINITY = 1 / 0, MAX_SAFE_INTEGER = 9007199254740991, MAX_INTEGER = 1.7976931348623157e308, NAN = NaN, MAX_ARRAY_LENGTH = 4294967295, MAX_ARRAY_INDEX = MAX_ARRAY_LENGTH - 1, HALF_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH >>> 1, PLACEHOLDER = "__lodash_placeholder__", argsTag = "[object Arguments]", arrayTag = "[object Array]", boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", funcTag = "[object Function]", genTag = "[object GeneratorFunction]", mapTag = "[object Map]", numberTag = "[object Number]", objectTag = "[object Object]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", weakMapTag = "[object WeakMap]", arrayBufferTag = "[object ArrayBuffer]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]", reEmptyStringLeading = /\b__p \+= '';/g, reEmptyStringMiddle = /\b(__p \+=) '' \+/g, reEmptyStringTrailing = /(__e\(.*?\)|\b__t\)) \+\n'';/g, reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g, reUnescapedHtml = /[&<>"'`]/g, reHasEscapedHtml = RegExp(reEscapedHtml.source), reHasUnescapedHtml = RegExp(reUnescapedHtml.source), reEscape = /<%-([\s\S]+?)%>/g, reEvaluate = /<%([\s\S]+?)%>/g, reInterpolate = /<%=([\s\S]+?)%>/g, reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/, reIsPlainProp = /^\w*$/, rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]/g, reRegExpChar = /[\\^$.*+?()[\]{}|]/g, reHasRegExpChar = RegExp(reRegExpChar.source), reTrim = /^\s+|\s+$/g, reTrimStart = /^\s+/, reTrimEnd = /\s+$/, reEscapeChar = /\\(\\)?/g, reEsTemplate = /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g, reFlags = /\w*$/, reHasHexPrefix = /^0x/i, reIsBadHex = /^[-+]0x[0-9a-f]+$/i, reIsBinary = /^0b[01]+$/i, reIsHostCtor = /^\[object .+?Constructor\]$/, reIsOctal = /^0o[0-7]+$/i, reIsUint = /^(?:0|[1-9]\d*)$/, reLatin1 = /[\xc0-\xd6\xd8-\xde\xdf-\xf6\xf8-\xff]/g, reNoMatch = /($^)/, reUnescapedString = /['\n\r\u2028\u2029\\]/g, rsAstralRange = "\\ud800-\\udfff", rsComboMarksRange = "\\u0300-\\u036f\\ufe20-\\ufe23", rsComboSymbolsRange = "\\u20d0-\\u20f0", rsDingbatRange = "\\u2700-\\u27bf", rsLowerRange = "a-z\\xdf-\\xf6\\xf8-\\xff", rsMathOpRange = "\\xac\\xb1\\xd7\\xf7", rsNonCharRange = "\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf", rsQuoteRange = "\\u2018\\u2019\\u201c\\u201d", rsSpaceRange = " \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000", rsUpperRange = "A-Z\\xc0-\\xd6\\xd8-\\xde", rsVarRange = "\\ufe0e\\ufe0f", rsBreakRange = rsMathOpRange + rsNonCharRange + rsQuoteRange + rsSpaceRange, rsAstral = "[" + rsAstralRange + "]", rsBreak = "[" + rsBreakRange + "]", rsCombo = "[" + rsComboMarksRange + rsComboSymbolsRange + "]", rsDigits = "\\d+", rsDingbat = "[" + rsDingbatRange + "]", rsLower = "[" + rsLowerRange + "]", rsMisc = "[^" + rsAstralRange + rsBreakRange + rsDigits + rsDingbatRange + rsLowerRange + rsUpperRange + "]", rsFitz = "\\ud83c[\\udffb-\\udfff]", rsModifier = "(?:" + rsCombo + "|" + rsFitz + ")", rsNonAstral = "[^" + rsAstralRange + "]", rsRegional = "(?:\\ud83c[\\udde6-\\uddff]){2}", rsSurrPair = "[\\ud800-\\udbff][\\udc00-\\udfff]", rsUpper = "[" + rsUpperRange + "]", rsZWJ = "\\u200d", rsLowerMisc = "(?:" + rsLower + "|" + rsMisc + ")", rsUpperMisc = "(?:" + rsUpper + "|" + rsMisc + ")", reOptMod = rsModifier + "?", rsOptVar = "[" + rsVarRange + "]?", rsOptJoin = "(?:" + rsZWJ + "(?:" + [ rsNonAstral, rsRegional, rsSurrPair ].join("|") + ")" + rsOptVar + reOptMod + ")*", rsSeq = rsOptVar + reOptMod + rsOptJoin, rsEmoji = "(?:" + [ rsDingbat, rsRegional, rsSurrPair ].join("|") + ")" + rsSeq, rsSymbol = "(?:" + [ rsNonAstral + rsCombo + "?", rsCombo, rsRegional, rsSurrPair, rsAstral ].join("|") + ")", reComboMark = RegExp(rsCombo, "g"), reComplexSymbol = RegExp(rsFitz + "(?=" + rsFitz + ")|" + rsSymbol + rsSeq, "g"), reHasComplexSymbol = RegExp("[" + rsZWJ + rsAstralRange + rsComboMarksRange + rsComboSymbolsRange + rsVarRange + "]"), reBasicWord = /[a-zA-Z0-9]+/g, reComplexWord = RegExp([ rsUpper + "?" + rsLower + "+(?=" + [ rsBreak, rsUpper, "$" ].join("|") + ")", rsUpperMisc + "+(?=" + [ rsBreak, rsUpper + rsLowerMisc, "$" ].join("|") + ")", rsUpper + "?" + rsLowerMisc + "+", rsUpper + "+", rsDigits, rsEmoji ].join("|"), "g"), reHasComplexWord = /[a-z][A-Z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/, contextProps = [ "Array", "Date", "Error", "Float32Array", "Float64Array", "Function", "Int8Array", "Int16Array", "Int32Array", "Map", "Math", "Object", "Reflect", "RegExp", "Set", "String", "Symbol", "TypeError", "Uint8Array", "Uint8ClampedArray", "Uint16Array", "Uint32Array", "WeakMap", "_", "clearTimeout", "isFinite", "parseInt", "setTimeout" ], templateCounter = -1, typedArrayTags = {};
+                var undefined, VERSION = "4.3.0", BIND_FLAG = 1, BIND_KEY_FLAG = 2, CURRY_BOUND_FLAG = 4, CURRY_FLAG = 8, CURRY_RIGHT_FLAG = 16, PARTIAL_FLAG = 32, PARTIAL_RIGHT_FLAG = 64, ARY_FLAG = 128, REARG_FLAG = 256, FLIP_FLAG = 512, UNORDERED_COMPARE_FLAG = 1, PARTIAL_COMPARE_FLAG = 2, DEFAULT_TRUNC_LENGTH = 30, DEFAULT_TRUNC_OMISSION = "...", HOT_COUNT = 150, HOT_SPAN = 16, LARGE_ARRAY_SIZE = 200, LAZY_FILTER_FLAG = 1, LAZY_MAP_FLAG = 2, LAZY_WHILE_FLAG = 3, FUNC_ERROR_TEXT = "Expected a function", HASH_UNDEFINED = "__lodash_hash_undefined__", INFINITY = 1 / 0, MAX_SAFE_INTEGER = 9007199254740991, MAX_INTEGER = 1.7976931348623157e308, NAN = NaN, MAX_ARRAY_LENGTH = 4294967295, MAX_ARRAY_INDEX = MAX_ARRAY_LENGTH - 1, HALF_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH >>> 1, PLACEHOLDER = "__lodash_placeholder__", argsTag = "[object Arguments]", arrayTag = "[object Array]", boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", funcTag = "[object Function]", genTag = "[object GeneratorFunction]", mapTag = "[object Map]", numberTag = "[object Number]", objectTag = "[object Object]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", weakMapTag = "[object WeakMap]", weakSetTag = "[object WeakSet]", arrayBufferTag = "[object ArrayBuffer]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]", reEmptyStringLeading = /\b__p \+= '';/g, reEmptyStringMiddle = /\b(__p \+=) '' \+/g, reEmptyStringTrailing = /(__e\(.*?\)|\b__t\)) \+\n'';/g, reEscapedHtml = /&(?:amp|lt|gt|quot|#39|#96);/g, reUnescapedHtml = /[&<>"'`]/g, reHasEscapedHtml = RegExp(reEscapedHtml.source), reHasUnescapedHtml = RegExp(reUnescapedHtml.source), reEscape = /<%-([\s\S]+?)%>/g, reEvaluate = /<%([\s\S]+?)%>/g, reInterpolate = /<%=([\s\S]+?)%>/g, reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/, reIsPlainProp = /^\w*$/, rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]/g, reRegExpChar = /[\\^$.*+?()[\]{}|]/g, reHasRegExpChar = RegExp(reRegExpChar.source), reTrim = /^\s+|\s+$/g, reTrimStart = /^\s+/, reTrimEnd = /\s+$/, reEscapeChar = /\\(\\)?/g, reEsTemplate = /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g, reFlags = /\w*$/, reHasHexPrefix = /^0x/i, reIsBadHex = /^[-+]0x[0-9a-f]+$/i, reIsBinary = /^0b[01]+$/i, reIsHostCtor = /^\[object .+?Constructor\]$/, reIsOctal = /^0o[0-7]+$/i, reIsUint = /^(?:0|[1-9]\d*)$/, reLatin1 = /[\xc0-\xd6\xd8-\xde\xdf-\xf6\xf8-\xff]/g, reNoMatch = /($^)/, reUnescapedString = /['\n\r\u2028\u2029\\]/g, rsAstralRange = "\\ud800-\\udfff", rsComboMarksRange = "\\u0300-\\u036f\\ufe20-\\ufe23", rsComboSymbolsRange = "\\u20d0-\\u20f0", rsDingbatRange = "\\u2700-\\u27bf", rsLowerRange = "a-z\\xdf-\\xf6\\xf8-\\xff", rsMathOpRange = "\\xac\\xb1\\xd7\\xf7", rsNonCharRange = "\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf", rsQuoteRange = "\\u2018\\u2019\\u201c\\u201d", rsSpaceRange = " \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000", rsUpperRange = "A-Z\\xc0-\\xd6\\xd8-\\xde", rsVarRange = "\\ufe0e\\ufe0f", rsBreakRange = rsMathOpRange + rsNonCharRange + rsQuoteRange + rsSpaceRange, rsAstral = "[" + rsAstralRange + "]", rsBreak = "[" + rsBreakRange + "]", rsCombo = "[" + rsComboMarksRange + rsComboSymbolsRange + "]", rsDigits = "\\d+", rsDingbat = "[" + rsDingbatRange + "]", rsLower = "[" + rsLowerRange + "]", rsMisc = "[^" + rsAstralRange + rsBreakRange + rsDigits + rsDingbatRange + rsLowerRange + rsUpperRange + "]", rsFitz = "\\ud83c[\\udffb-\\udfff]", rsModifier = "(?:" + rsCombo + "|" + rsFitz + ")", rsNonAstral = "[^" + rsAstralRange + "]", rsRegional = "(?:\\ud83c[\\udde6-\\uddff]){2}", rsSurrPair = "[\\ud800-\\udbff][\\udc00-\\udfff]", rsUpper = "[" + rsUpperRange + "]", rsZWJ = "\\u200d", rsLowerMisc = "(?:" + rsLower + "|" + rsMisc + ")", rsUpperMisc = "(?:" + rsUpper + "|" + rsMisc + ")", reOptMod = rsModifier + "?", rsOptVar = "[" + rsVarRange + "]?", rsOptJoin = "(?:" + rsZWJ + "(?:" + [ rsNonAstral, rsRegional, rsSurrPair ].join("|") + ")" + rsOptVar + reOptMod + ")*", rsSeq = rsOptVar + reOptMod + rsOptJoin, rsEmoji = "(?:" + [ rsDingbat, rsRegional, rsSurrPair ].join("|") + ")" + rsSeq, rsSymbol = "(?:" + [ rsNonAstral + rsCombo + "?", rsCombo, rsRegional, rsSurrPair, rsAstral ].join("|") + ")", reComboMark = RegExp(rsCombo, "g"), reComplexSymbol = RegExp(rsFitz + "(?=" + rsFitz + ")|" + rsSymbol + rsSeq, "g"), reHasComplexSymbol = RegExp("[" + rsZWJ + rsAstralRange + rsComboMarksRange + rsComboSymbolsRange + rsVarRange + "]"), reBasicWord = /[a-zA-Z0-9]+/g, reComplexWord = RegExp([ rsUpper + "?" + rsLower + "+(?=" + [ rsBreak, rsUpper, "$" ].join("|") + ")", rsUpperMisc + "+(?=" + [ rsBreak, rsUpper + rsLowerMisc, "$" ].join("|") + ")", rsUpper + "?" + rsLowerMisc + "+", rsUpper + "+", rsDigits, rsEmoji ].join("|"), "g"), reHasComplexWord = /[a-z][A-Z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/, contextProps = [ "Array", "Buffer", "Date", "Error", "Float32Array", "Float64Array", "Function", "Int8Array", "Int16Array", "Int32Array", "Map", "Math", "Object", "Reflect", "RegExp", "Set", "String", "Symbol", "TypeError", "Uint8Array", "Uint8ClampedArray", "Uint16Array", "Uint32Array", "WeakMap", "_", "clearTimeout", "isFinite", "parseInt", "setTimeout" ], templateCounter = -1, typedArrayTags = {};
                 typedArrayTags[float32Tag] = typedArrayTags[float64Tag] = typedArrayTags[int8Tag] = typedArrayTags[int16Tag] = typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] = typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] = typedArrayTags[uint32Tag] = !0, 
                 typedArrayTags[argsTag] = typedArrayTags[arrayTag] = typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] = typedArrayTags[dateTag] = typedArrayTags[errorTag] = typedArrayTags[funcTag] = typedArrayTags[mapTag] = typedArrayTags[numberTag] = typedArrayTags[objectTag] = typedArrayTags[regexpTag] = typedArrayTags[setTag] = typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = !1;
                 /** Used to identify `toStringTag` values supported by `_.clone`. */
@@ -9843,8 +10025,7 @@
                     "\r": "r",
                     "\u2028": "u2028",
                     "\u2029": "u2029"
-                }, freeParseFloat = parseFloat, freeParseInt = parseInt, freeExports = objectTypes[typeof exports] && exports && !exports.nodeType ? exports : null, freeModule = objectTypes[typeof module] && module && !module.nodeType ? module : null, freeGlobal = checkGlobal(freeExports && freeModule && "object" == typeof global && global), freeSelf = checkGlobal(objectTypes[typeof self] && self), freeWindow = checkGlobal(objectTypes[typeof window] && window), thisGlobal = (freeModule && freeModule.exports === freeExports ? freeExports : null, 
-                checkGlobal(objectTypes[typeof this] && this)), root = freeGlobal || freeWindow !== (thisGlobal && thisGlobal.window) && freeWindow || freeSelf || thisGlobal || Function("return this")(), _ = runInContext();
+                }, freeParseFloat = parseFloat, freeParseInt = parseInt, freeExports = objectTypes[typeof exports] && exports && !exports.nodeType ? exports : null, freeModule = objectTypes[typeof module] && module && !module.nodeType ? module : null, freeGlobal = checkGlobal(freeExports && freeModule && "object" == typeof global && global), freeSelf = checkGlobal(objectTypes[typeof self] && self), freeWindow = checkGlobal(objectTypes[typeof window] && window), moduleExports = freeModule && freeModule.exports === freeExports ? freeExports : null, thisGlobal = checkGlobal(objectTypes[typeof this] && this), root = freeGlobal || freeWindow !== (thisGlobal && thisGlobal.window) && freeWindow || freeSelf || thisGlobal || Function("return this")(), _ = runInContext();
                 // Expose lodash on the free variable `window` or `self` when available. This
                 // prevents errors in cases where lodash is loaded by a script tag in the presence
                 // of an AMD loader. See http://requirejs.org/docs/errors.html#mismatch for more details.
@@ -9852,10 +10033,10 @@
                     return _;
                 }.call(exports, __webpack_require__, exports, module), !(__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
             }).call(this);
-        }).call(exports, __webpack_require__(11)(module), function() {
+        }).call(exports, __webpack_require__(14)(module), function() {
             return this;
         }());
-    }, /* 4 */
+    }, /* 5 */
     /***/
     function(module, exports) {
         function normalize(str) {
@@ -9865,7 +10046,7 @@
             var joined = [].slice.call(arguments, 0).join("/");
             return normalize(joined);
         };
-    }, /* 5 */
+    }, /* 6 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
@@ -9877,9 +10058,24 @@
         function _classCallCheck(instance, Constructor) {
             if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
         }
+        function makeDocument(client, collectionName, id) {
+            switch (collectionName.toLowerCase()) {
+              case "reports":
+                return new _report2["default"](client, id);
+
+              case "datasources":
+                return new _datasource2["default"](client, id);
+
+              case "datasets":
+                return new _dataset2["default"](client, id);
+
+              default:
+                return new _document2["default"](client, collectionName, id);
+            }
+        }
         function makeCollection(client, collectionName) {
             var collection = new _documentCollection2["default"](client, collectionName), documentFn = function(id) {
-                return id ? new _document2["default"](client, collectionName, id) : collection;
+                return id ? makeDocument(client, collectionName, id) : collection;
             }, _iteratorNormalCompletion = !0, _didIteratorError = !1, _iteratorError = void 0;
             try {
                 for (var _step, _iterator = Object.getOwnPropertyNames(Object.getPrototypeOf(collection))[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = !0) {
@@ -9897,6 +10093,9 @@
             }
             return documentFn;
         }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        });
         var _extends = Object.assign || function(target) {
             for (var i = 1; i < arguments.length; i++) {
                 var source = arguments[i];
@@ -9915,18 +10114,20 @@
                 return protoProps && defineProperties(Constructor.prototype, protoProps), staticProps && defineProperties(Constructor, staticProps), 
                 Constructor;
             };
-        }();
-        Object.defineProperty(exports, "__esModule", {
-            value: !0
-        });
-        var _document = __webpack_require__(6), _document2 = _interopRequireDefault(_document), _documentCollection = __webpack_require__(7), _documentCollection2 = _interopRequireDefault(_documentCollection), _mimeType = __webpack_require__(1), _mimeType2 = _interopRequireDefault(_mimeType), _urlJoin = __webpack_require__(4), _urlJoin2 = _interopRequireDefault(_urlJoin), _lodash = __webpack_require__(3), _lodash2 = _interopRequireDefault(_lodash), defaultOptions = {
+        }(), _document = __webpack_require__(1), _document2 = _interopRequireDefault(_document), _report = __webpack_require__(11), _report2 = _interopRequireDefault(_report), _datasource = __webpack_require__(8), _datasource2 = _interopRequireDefault(_datasource), _dataset = __webpack_require__(7), _dataset2 = _interopRequireDefault(_dataset), _documentCollection = __webpack_require__(9), _documentCollection2 = _interopRequireDefault(_documentCollection), _mimeType = __webpack_require__(2), _mimeType2 = _interopRequireDefault(_mimeType), _urlJoin = __webpack_require__(5), _urlJoin2 = _interopRequireDefault(_urlJoin), _lodash = __webpack_require__(4), _lodash2 = _interopRequireDefault(_lodash), defaultOptions = {
             endpoint: "",
             token: "$local_admin"
         }, ArsClient = function() {
             function ArsClient() {
                 var options = arguments.length <= 0 || void 0 === arguments[0] ? defaultOptions : arguments[0];
                 _classCallCheck(this, ArsClient), this.options = options, this.token = options.token, 
-                this.endpoint = options.endpoint, this.reports = makeCollection(this, "reports");
+                this.endpoint = options.endpoint, this.agents = makeCollection(this, "agents"), 
+                this.reports = makeCollection(this, "reports"), this.dataSources = makeCollection(this, "datasources"), 
+                this.dataSets = makeCollection(this, "datasets"), this.models = makeCollection(this, "models"), 
+                this.themes = makeCollection(this, "themes"), this.images = makeCollection(this, "images"), 
+                this.scheduleTemplates = makeCollection(this, "scheduletemplates"), this.schedules = makeCollection(this, "schedules"), 
+                this.styleSheets = makeCollection(this, "stylesheets"), this.tags = makeCollection(this, "tags"), 
+                this.users = makeCollection(this, "users"), this.roles = makeCollection(this, "roles");
             }
             return _createClass(ArsClient, [ {
                 key: "absurl",
@@ -9956,75 +10157,90 @@
             } ]), ArsClient;
         }();
         exports["default"] = ArsClient;
-    }, /* 6 */
-    /***/
-    function(module, exports, __webpack_require__) {
-        "use strict";
-        function _classCallCheck(instance, Constructor) {
-            if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
-        }
-        var _createClass = function() {
-            function defineProperties(target, props) {
-                for (var i = 0; i < props.length; i++) {
-                    var descriptor = props[i];
-                    descriptor.enumerable = descriptor.enumerable || !1, descriptor.configurable = !0, 
-                    "value" in descriptor && (descriptor.writable = !0), Object.defineProperty(target, descriptor.key, descriptor);
-                }
-            }
-            return function(Constructor, protoProps, staticProps) {
-                return protoProps && defineProperties(Constructor.prototype, protoProps), staticProps && defineProperties(Constructor, staticProps), 
-                Constructor;
-            };
-        }();
-        Object.defineProperty(exports, "__esModule", {
-            value: !0
-        });
-        var _upload = __webpack_require__(2), Document = function() {
-            function Document(client, collectionName, id) {
-                _classCallCheck(this, Document), this.client = client, this.collectionName = collectionName, 
-                this.id = id, this.path = collectionName + "/" + this.id;
-            }
-            return _createClass(Document, [ {
-                key: "load",
-                value: function() {
-                    return this.client.fetchJSON("/api/" + this.path);
-                }
-            }, {
-                key: "delete",
-                value: function() {
-                    return this.client["delete"]("/api/" + this.path);
-                }
-            }, {
-                key: "remove",
-                value: function() {
-                    return this["delete"]();
-                }
-            }, {
-                key: "getContent",
-                value: function() {
-                    return (0, _upload.getContent)(this.client, this.path);
-                }
-            }, {
-                key: "content",
-                value: function() {
-                    return this.getContent();
-                }
-            }, {
-                key: "updateContent",
-                value: function(body) {
-                    var options = arguments.length <= 1 || void 0 === arguments[1] ? _upload.defaultUploadOptions : arguments[1];
-                    return (0, _upload.postContent)(this.client, "put", this.path, body, options);
-                }
-            } ]), Document;
-        }();
-        exports["default"] = Document;
     }, /* 7 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            };
+        }
         function _classCallCheck(instance, Constructor) {
             if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
         }
+        function _possibleConstructorReturn(self, call) {
+            if (!self) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+            return !call || "object" != typeof call && "function" != typeof call ? self : call;
+        }
+        function _inherits(subClass, superClass) {
+            if ("function" != typeof superClass && null !== superClass) throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+            subClass.prototype = Object.create(superClass && superClass.prototype, {
+                constructor: {
+                    value: subClass,
+                    enumerable: !1,
+                    writable: !0,
+                    configurable: !0
+                }
+            }), superClass && (Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass);
+        }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        });
+        var _document = __webpack_require__(1), _document2 = _interopRequireDefault(_document), DataSet = function(_Document) {
+            function DataSet(client, id) {
+                return _classCallCheck(this, DataSet), _possibleConstructorReturn(this, Object.getPrototypeOf(DataSet).call(this, client, "datasets", id));
+            }
+            return _inherits(DataSet, _Document), DataSet;
+        }(_document2["default"]);
+        exports["default"] = DataSet;
+    }, /* 8 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            };
+        }
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+        }
+        function _possibleConstructorReturn(self, call) {
+            if (!self) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+            return !call || "object" != typeof call && "function" != typeof call ? self : call;
+        }
+        function _inherits(subClass, superClass) {
+            if ("function" != typeof superClass && null !== superClass) throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+            subClass.prototype = Object.create(superClass && superClass.prototype, {
+                constructor: {
+                    value: subClass,
+                    enumerable: !1,
+                    writable: !0,
+                    configurable: !0
+                }
+            }), superClass && (Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass);
+        }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        });
+        var _document = __webpack_require__(1), _document2 = _interopRequireDefault(_document), DataSource = function(_Document) {
+            function DataSource(client, id) {
+                return _classCallCheck(this, DataSource), _possibleConstructorReturn(this, Object.getPrototypeOf(DataSource).call(this, client, "datasources", id));
+            }
+            return _inherits(DataSource, _Document), DataSource;
+        }(_document2["default"]);
+        exports["default"] = DataSource;
+    }, /* 9 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        "use strict";
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+        }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        });
         var _createClass = function() {
             function defineProperties(target, props) {
                 for (var i = 0; i < props.length; i++) {
@@ -10037,11 +10253,7 @@
                 return protoProps && defineProperties(Constructor.prototype, protoProps), staticProps && defineProperties(Constructor, staticProps), 
                 Constructor;
             };
-        }();
-        Object.defineProperty(exports, "__esModule", {
-            value: !0
-        });
-        var _upload = __webpack_require__(2), DocumentCollection = function() {
+        }(), _upload = __webpack_require__(3), DocumentCollection = function() {
             function DocumentCollection(client, name) {
                 _classCallCheck(this, DocumentCollection), this.client = client, this.name = name;
             }
@@ -10064,7 +10276,7 @@
             } ]), DocumentCollection;
         }();
         exports["default"] = DocumentCollection;
-    }, /* 8 */
+    }, /* 10 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
@@ -10091,12 +10303,49 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         }), exports.login = login;
-        var _urlJoin = __webpack_require__(4), _urlJoin2 = _interopRequireDefault(_urlJoin);
-    }, /* 9 */
+        var _urlJoin = __webpack_require__(5), _urlJoin2 = _interopRequireDefault(_urlJoin);
+    }, /* 11 */
     /***/
     function(module, exports, __webpack_require__) {
         "use strict";
-        var strictUriEncode = __webpack_require__(10);
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                "default": obj
+            };
+        }
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+        }
+        function _possibleConstructorReturn(self, call) {
+            if (!self) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+            return !call || "object" != typeof call && "function" != typeof call ? self : call;
+        }
+        function _inherits(subClass, superClass) {
+            if ("function" != typeof superClass && null !== superClass) throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+            subClass.prototype = Object.create(superClass && superClass.prototype, {
+                constructor: {
+                    value: subClass,
+                    enumerable: !1,
+                    writable: !0,
+                    configurable: !0
+                }
+            }), superClass && (Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass);
+        }
+        Object.defineProperty(exports, "__esModule", {
+            value: !0
+        });
+        var _document = __webpack_require__(1), _document2 = _interopRequireDefault(_document), Report = function(_Document) {
+            function Report(client, id) {
+                return _classCallCheck(this, Report), _possibleConstructorReturn(this, Object.getPrototypeOf(Report).call(this, client, "reports", id));
+            }
+            return _inherits(Report, _Document), Report;
+        }(_document2["default"]);
+        exports["default"] = Report;
+    }, /* 12 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        "use strict";
+        var strictUriEncode = __webpack_require__(13);
         exports.extract = function(str) {
             return str.split("?")[1] || "";
         }, exports.parse = function(str) {
@@ -10117,7 +10366,7 @@
                 return x.length > 0;
             }).join("&") : "";
         };
-    }, /* 10 */
+    }, /* 13 */
     /***/
     function(module, exports) {
         "use strict";
@@ -10126,7 +10375,7 @@
                 return "%" + c.charCodeAt(0).toString(16).toUpperCase();
             });
         };
-    }, /* 11 */
+    }, /* 14 */
     /***/
     function(module, exports) {
         module.exports = function(module) {

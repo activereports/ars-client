@@ -1,14 +1,30 @@
 import Document from './document';
+import Report from './report';
+import DataSource from './datasource';
+import DataSet from './dataset';
 import DocumentCollection from './documentCollection';
 import mimeType from './mimeType';
 import urljoin from 'url-join';
 import _ from 'lodash';
 
+function makeDocument(client, collectionName, id) {
+	switch (collectionName.toLowerCase()) {
+	case 'reports':
+		return new Report(client, id);
+	case 'datasources':
+		return new DataSource(client, id);
+	case 'datasets':
+		return new DataSet(client, id);
+	default:
+		return new Document(client, collectionName, id);
+	}
+}
+
 function makeCollection(client, collectionName) {
 	const collection = new DocumentCollection(client, collectionName);
 	const documentFn = function (id) {
 		if (!id) return collection;
-		return new Document(client, collectionName, id);
+		return makeDocument(client, collectionName, id);
 	};
 
 	// extend documentFn with collection API to reduce mistakes
@@ -33,7 +49,19 @@ export default class ArsClient {
 		this.options = options;
 		this.token = options.token;
 		this.endpoint = options.endpoint;
+		this.agents = makeCollection(this, 'agents');
 		this.reports = makeCollection(this, 'reports');
+		this.dataSources = makeCollection(this, 'datasources');
+		this.dataSets = makeCollection(this, 'datasets');
+		this.models = makeCollection(this, 'models');
+		this.themes = makeCollection(this, 'themes');
+		this.images = makeCollection(this, 'images');
+		this.scheduleTemplates = makeCollection(this, 'scheduletemplates');
+		this.schedules = makeCollection(this, 'schedules');
+		this.styleSheets = makeCollection(this, 'stylesheets');
+		this.tags = makeCollection(this, 'tags');
+		this.users = makeCollection(this, 'users');
+		this.roles = makeCollection(this, 'roles');
 	}
 
 	absurl(url) {

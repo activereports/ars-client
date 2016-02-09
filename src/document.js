@@ -1,5 +1,7 @@
 import { getContent, postContent, defaultUploadOptions } from './upload';
 
+// TODO GET, PUT, PATCH permissions
+
 export default class Document {
 	constructor(client, collectionName, id) {
 		this.client = client;
