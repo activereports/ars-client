@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/activereports/ars-client#readme",
   "dependencies": {
+    "es6-promise": "^3.0.2",
+    "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.3.0",
     "query-string": "^3.0.0",
     "url-join": "0.0.1"

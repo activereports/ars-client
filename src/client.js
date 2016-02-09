@@ -1,3 +1,5 @@
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
 import Document from './document';
 import Report from './report';
 import DataSource from './datasource';

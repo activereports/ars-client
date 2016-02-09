@@ -1,3 +1,5 @@
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
 import queryString from 'query-string';
 import mimeType from './mimeType';
 import _ from 'lodash';
