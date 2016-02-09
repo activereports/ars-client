@@ -1,6 +1,6 @@
 {
   "name": "ars-client",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "JavaScript client to RESTful API of ActiveReports Server.",
   "main": "lib/index.js",
   "scripts": {
